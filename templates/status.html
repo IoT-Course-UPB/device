@@ -1,0 +1,25 @@
+<!doctype html>
+<h1><span style="color: #000000;">Device <em>{{ name }}</em></span></h1>
+<p>
+{% if has_sensor %}
+	<img src="{{url_for('static', filename='thermometer.png')}}" width="19" height="40" />
+{% endif %}
+
+{% if has_actuator %}
+	<img src="{{url_for('static', filename='thermostat.png')}}" alt="" width="40" height="40" />
+{% endif %}
+</p>
+<p>{{ description }}</p>
+
+{% if has_sensor %}
+	<h4>Sensor <em>{{ sensor_name }}</em> ({{ sensor_status }})</h4>
+	<p style="padding-left: 40px;"><span style="text-decoration: underline;">{{ sensor_metric }}:</span> {{ sensor_value }}</p>
+	<p style="padding-left: 40px;"><span style="text-decoration: underline;">Unit:</span> {{ sensor_unit }}</p>
+	<p style="padding-left: 40px;"><span style="text-decoration: underline;">Timestamp:</span> {{ sensor_timestamp }}</p>
+{% endif %}
+
+{% if has_actuator %}
+	<h4>Actuator <em>{{ actuator_name }}</em> ({{ actuator_status }})</h4>
+	<p style="padding-left: 40px;"><span style="text-decoration: underline;">State:</span> {{ actuator_state }}</p>
+	<p style="padding-left: 40px;"><span style="text-decoration: underline;">Unit:</span> {{ actuator_unit }}</p>
+{% endif %}
