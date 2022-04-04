@@ -18,17 +18,17 @@ class Actuator:
 
     def start(self):
         if (self.active == False):
-            print("Actuator of device " + self.name + " starting")
+            print("Actuator " + self.name + " starting")
             self.active = True
         else:
-            print("Actuator of device " + self.name + " already started")
+            print("Actuator " + self.name + " already started")
 
     def stop(self):
         if (self.active == True):
-            print("Actuator of device " + self.name + " stopping")
+            print("Actuator " + self.name + " stopping")
             self.active = False
         else:
-            print("Actuator of device " + self.name + " already stopped")
+            print("Actuator " + self.name + " already stopped")
 
     def get_status(self):
         data = {'name': self.name, 'state': self.state,
@@ -41,10 +41,14 @@ class Actuator:
                 self.state = self.state_0
             else:
                 self.state = self.state_1
+            print("Actuator " + self.name + " set to " + self.state)
+            return True
         else:
             val = float(value)
             if (val < self.min or val > self.max):
+                print("Actuator " + self.name + " could not be set to " + val)
                 return False
             else:
                 self.state = val
+                print("Actuator " + self.name + " set to " + self.state)
                 return True

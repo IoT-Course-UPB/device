@@ -22,26 +22,26 @@ class Sensor:
         while (self.active):
             sleep(self.interval)
             json = self.__generate_payload()
-            #print(json)
+            print("Sensor " + self.name + " generated data: " + json)
 
     def start(self):
         if (self.active == False):
-            print("Sensor of device " + self.name + " starting")
+            print("Sensor " + self.name + " starting")
             self.active = True
             self.__generate_payload()
             self.__thread = Thread(target=self.__run)
             self.__thread.start()
         else:
-            print("Sensor of device " + self.name + " already started")
+            print("Sensor " + self.name + " already started")
 
     def stop(self):
         if (self.active == True):
-            print("Sensor of device " + self.name + " stopping")
+            print("Sensor " + self.name + " stopping")
             self.active = False
             self.__generate_payload()
             self.__thread.join()
         else:
-            print("Sensor of device " + self.name + " already stopped")
+            print("Sensor " + self.name + " already stopped")
 
     def __generate_payload(self):
         val = round(random.uniform(self.min, self.max) / self.step) * self.step
