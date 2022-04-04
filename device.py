@@ -86,42 +86,42 @@ def hello_world():
     return "<p>Hello, World!</p>"
 
 
-@app.route("/start")
+@app.route("/start", methods=['POST'])
 def start():
     print("Starting component(s) of device" + name)
     start_all()
     return jsonify(get_status())
 
 
-@app.route("/stop")
+@app.route("/stop", methods=['POST'])
 def stop():
     print("Stopping component(s) of device" + name)
     stop_all()
     return jsonify(get_status())
 
 
-@app.route("/start_sensor")
+@app.route("/start_sensor", methods=['POST'])
 def start_sensor():
     print("Starting sensor of device" + name)
     sensor.start()
     return jsonify(get_status())
 
 
-@app.route("/stop_sensor")
+@app.route("/stop_sensor", methods=['POST'])
 def stop_sensor():
     print("Stopping sensor of device" + name)
     sensor.stop()
     return jsonify(get_status())
 
 
-@app.route("/start_actuator")
+@app.route("/start_actuator", methods=['POST'])
 def start_actuator():
     print("Starting actuator of device" + name)
     actuator.start()
     return jsonify(get_status())
 
 
-@app.route("/stop_actuator")
+@app.route("/stop_actuator", methods=['POST'])
 def stop_actuator():
     print("Stopping actuator of device" + name)
     actuator.stop()
