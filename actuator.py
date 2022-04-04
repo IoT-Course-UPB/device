@@ -46,9 +46,9 @@ class Actuator:
         else:
             val = float(value)
             if (val < self.min or val > self.max):
-                print("Actuator " + self.name + " could not be set to " + val)
+                print("Actuator " + self.name + " could not be set to " + str(val))
                 return False
             else:
                 self.state = val
-                print("Actuator " + self.name + " set to " + self.state)
+                print("Actuator " + self.name + " set to " + str(self.state))
                 return True
