@@ -62,6 +62,13 @@ if name == None:
 
 # D_TYPE
 type = os.getenv("D_TYPE", DeviceType.BOTH)
+if (type != DeviceType.BOTH):
+    if (type == "1"):
+        type = DeviceType.SENSOR
+    elif (type == "2"):
+        type = DeviceType.ACTUATOR
+    else:
+        type = DeviceType.BOTH
 
 # D_DESC
 description = os.getenv("D_DESC", "")
