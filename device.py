@@ -202,10 +202,11 @@ def status_actuator():
 
 @app.route("/set_actuator", methods=['POST'])
 def set_actuator():
+    state = request.form["state"]
     if (actuator.active == False):
         return Response(json.dumps({"error": "actuator not active"}), status=400, mimetype='application/json')
 
-    if (actuator.set_state(request.form["state"]) == False):
+    if (actuator.set_state(state) == False):
         return Response(json.dumps({"error": "invalid state parameter"}), status=400, mimetype='application/json')
     return jsonify(get_status_actuator())
 
