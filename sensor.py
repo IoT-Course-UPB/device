@@ -2,6 +2,7 @@ import os
 import random
 import datetime
 import json
+import sys
 from threading import Thread, Lock
 from time import sleep
 
@@ -23,6 +24,7 @@ class Sensor:
             sleep(self.interval)
             json = self.__generate_payload()
             print("Sensor " + self.name + " generated data: " + json)
+            sys.stdout.flush()
 
     def start(self):
         if (self.active == False):
