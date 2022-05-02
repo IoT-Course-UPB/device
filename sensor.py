@@ -3,6 +3,7 @@ import random
 import datetime
 import json
 import sys
+import pika
 from threading import Thread, Lock
 from time import sleep
 
@@ -19,11 +20,26 @@ class Sensor:
     mutex = Lock()
     active = False
 
+    def __send_data_to_server(self, data):
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host='rabbitmq'))
+        channel = connection.channel()
+        channel.queue_declare(queue='data_queue', durable=True)
+        channel.basic_publish(
+            exchange='',
+            routing_key='data_queue',
+            body=data,
+            properties=pika.BasicProperties(
+                delivery_mode=2,
+            ))
+        connection.close()
+
     def __run(self):
         while (self.active):
             sleep(self.interval)
             json = self.__generate_payload()
             print("Sensor " + self.name + " generated data: " + json)
+            self.__send_data_to_server(json)
             sys.stdout.flush()
 
     def start(self):
@@ -48,7 +64,7 @@ class Sensor:
     def __generate_payload(self):
         val = round(random.uniform(self.min, self.max) / self.step) * self.step
         data = {'name': self.name, 'timestamp': str(datetime.datetime.now(
-        )), self.metric: val, 'unit': self.unit, 'active': self.active}
+        )), 'measurement': val, 'metric': self.metric, 'unit': self.unit, 'active': self.active}
 
         self.__set_last_sample(data)
 

@@ -1,11 +1,11 @@
-from pickle import TRUE
-from re import S
 from time import sleep
 from flask import Flask, Response, jsonify, render_template, request
 from actuator import Actuator
 from sensor import Sensor
 import json
+import pika
 from enum import Enum
+from threading import Thread
 import os
 
 
@@ -47,6 +47,54 @@ def get_status_actuator():
     return {"name": name, "description": description, "actuator": actuator.get_status()}
 
 
+def connect_to_server(name):
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(host='rabbitmq'))
+    channel = connection.channel()
+    channel.queue_declare(queue=name, durable=True)
+    return channel
+
+
+def try_to_connect_to_server(name):
+    try:
+        channel = connect_to_server(name)
+        return channel
+    except:
+        sleep(1)
+        channel = try_to_connect_to_server(name)
+        return channel
+
+
+def send_update_to_server():
+    info = json.dumps(get_status())
+
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(host='rabbitmq'))
+    channel = connection.channel()
+    channel.queue_declare(queue='device_queue', durable=True)
+    channel.basic_publish(
+        exchange='',
+        routing_key='device_queue',
+        body=info,
+        properties=pika.BasicProperties(
+            delivery_mode=2,
+        ))
+    connection.close()
+
+
+def subscriber_thread_function(channel):
+    channel.basic_qos(prefetch_count=1)
+    channel.basic_consume(queue=name,
+                          on_message_callback=server_message_callback)
+    channel.start_consuming()
+
+
+def server_message_callback(ch, method, properties, body):
+    cmd = body.decode()
+    print("Received from server: %s" % cmd)
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+
 class DeviceType(Enum):
     SENSOR = 1
     ACTUATOR = 2
@@ -75,10 +123,22 @@ description = os.getenv("D_DESC", "")
 
 print("Name: " + name + ", Type: " + str(type) + ", Description: " + description)
 
+print("Connecting to queue...")
+
+channel = try_to_connect_to_server(name)
+
+print("Connected to queue")
+
+# start thread that listens to commands from the server
+subscriber_thread = Thread(target=subscriber_thread_function, args=(channel,))
+subscriber_thread.start()
+
 sensor = Sensor()
 actuator = Actuator()
 
 start_all()
+
+send_update_to_server()
 
 
 @app.route("/")
@@ -88,15 +148,17 @@ def hello_world():
 
 @app.route("/start", methods=['POST'])
 def start():
-    print("Starting component(s) of device" + name)
+    print("Starting component(s) of device " + name)
     start_all()
+    send_update_to_server()
     return jsonify(get_status())
 
 
 @app.route("/stop", methods=['POST'])
 def stop():
-    print("Stopping component(s) of device" + name)
+    print("Stopping component(s) of device " + name)
     stop_all()
+    send_update_to_server()
     return jsonify(get_status())
 
 
@@ -104,27 +166,31 @@ def stop():
 def start_sensor():
     print("Starting sensor of device" + name)
     sensor.start()
+    send_update_to_server()
     return jsonify(get_status())
 
 
 @app.route("/stop_sensor", methods=['POST'])
 def stop_sensor():
-    print("Stopping sensor of device" + name)
+    print("Stopping sensor of device " + name)
     sensor.stop()
+    send_update_to_server()
     return jsonify(get_status())
 
 
 @app.route("/start_actuator", methods=['POST'])
 def start_actuator():
-    print("Starting actuator of device" + name)
+    print("Starting actuator of device " + name)
     actuator.start()
+    send_update_to_server()
     return jsonify(get_status())
 
 
 @app.route("/stop_actuator", methods=['POST'])
 def stop_actuator():
-    print("Stopping actuator of device" + name)
+    print("Stopping actuator of device " + name)
     actuator.stop()
+    send_update_to_server()
     return jsonify(get_status())
 
 
@@ -208,6 +274,8 @@ def set_actuator():
 
     if (actuator.set_state(state) == False):
         return Response(json.dumps({"error": "invalid state parameter"}), status=400, mimetype='application/json')
+
+    send_update_to_server()
     return jsonify(get_status_actuator())
 
 
